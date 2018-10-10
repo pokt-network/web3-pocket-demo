@@ -50975,7 +50975,7 @@ PocketProvider.prototype._getNonce = function(sender, callback) {
         if (err != null) {
             callback(err);
         } else {
-            var nonce = web3Utils.toDecimal(response);
+            var nonce = web3Utils.toDecimal(response.result);
             callback(null, nonce);
         }
     });
@@ -54665,7 +54665,7 @@ var Keystore = function Keystore() {
 }
 
 Keystore.prototype.hasAddress = function(address, callback) {
-    callback(null, this.address === address);
+    callback(null, this.address.toUpperCase() === address.toUpperCase());
 }
 
 Keystore.prototype.signTransaction = function(txParams, callback) {
@@ -54673,7 +54673,7 @@ Keystore.prototype.signTransaction = function(txParams, callback) {
         var transaction = new EthereumTx(txParams);
         transaction.sign(this.privateKey);
         var serializedTx = transaction.serialize();
-        callback(null, serializedTx);
+        callback(null, '0x' + serializedTx.toString('hex'));
     } catch(error) {
         callback(new Error(error), null);
     }
@@ -54707,25 +54707,56 @@ var pocketProvider = new PocketProvider('http://localhost:3000', transactionSign
 // Create web3 instance with the provider
 var web3 = new Web3(pocketProvider);
 
-$(document).ready(function() {
-
+function refreshAccountData() {
     // Setup nav header
     $('#address-nav').text('Address: ' + keystore.address);
 
-    web3.eth.getBalance(keystore.address, function(error, balance) {
-        if(error !== null) {
+    web3.eth.getBalance(keystore.address, function (error, balance) {
+        if (error !== null) {
             console.error('Error getting account balance');
         }
         var ethBalance = web3.utils.fromWei(balance).toString();
         $('#balance').text(ethBalance + " ETH");
     });
 
-    web3.eth.getTransactionCount(keystore.address, function(error, transactionCount) {
+    web3.eth.getTransactionCount(keystore.address, function (error, transactionCount) {
         if (error !== null) {
             console.error('Error getting account transaction count');
         }
         var transactionCountStr = transactionCount.toString();
         $('#transaction-count').text(transactionCountStr);
+    });
+}
+
+$(document).ready(function() {
+
+    // Refresh account data
+    refreshAccountData();
+
+    $("#send-transaction").submit(function (event) {
+        event.preventDefault();
+
+        var toAddress = $('#to-address').val();
+        var amount = $('#amount').val();
+
+        var txParams = {
+            to: toAddress,
+            value: web3.utils.toWei(amount),
+            from: keystore.address,
+            gasPrice: '0x1',
+            gas: '0x3B9AC9FF'
+        };
+
+        web3.eth.sendTransaction(txParams, function(error, txHash) {
+            alert('Transaction Hash: ' + txHash);
+            refreshAccountData();
+            web3.eth.getTransaction(txHash, function(error, transactionReceipt) {
+                if(error !== null) {
+                    console.error(error);
+                }
+                console.log(transactionReceipt);
+            });
+        });
     });
 });
 },{"./keystore":435,"web3":417,"web3-pocket-provider":407}]},{},[436]);
