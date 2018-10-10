@@ -1,8 +1,45 @@
 body {
     padding-top: 5rem;
 }
-
 .starter-template {
     padding: 3rem 1.5rem;
     text-align: center;
+}
+.overview {
+  height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.account {
+  max-height: 90%;
+  min-height: 80%;
+  max-width: 95%;
+  min-width: 85%;
+  background-color: red;
+  text-align: center;
+}
+.account a {
+  display: block;
+  font-size: 27px;
+  padding-bottom: 1em;
+}
+.account p {
+  display: inline-block;
+  font-size: 24px;
+  text-align: left;
+}
+.transaction {
+  max-height: 90%;
+  min-height: 80%;
+  max-width: 95%;
+  min-width: 85%;
+  background-color: red;
+}
+.t-form {
+  display: block;
+  min-width: 85%;
+  min-height: 80%;
+  background-color: blue;
+  margin-bottom: 0;
 }
