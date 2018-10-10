@@ -51053,9 +51053,10 @@ PocketProvider.prototype._generateTransactionBody = function(payload, httpReques
  * Sets the onreadystatechange callback for a query http request
  * @method _onQueryResponse
  * @param {XHR2} httpRequest
+ * @param {Object} payload
  * @param {Function} callback
  */
-PocketProvider.prototype._onQueryResponse = function(httpRequest, callback) {
+PocketProvider.prototype._onQueryResponse = function(httpRequest, payload, callback) {
     var _this = this;
     httpRequest.onreadystatechange = function() {
         if (httpRequest.readyState === 4 && httpRequest.timeout !== 1) {
@@ -51074,7 +51075,12 @@ PocketProvider.prototype._onQueryResponse = function(httpRequest, callback) {
             }
 
             _this.connected = true;
-            callback(error, result);
+            var response = {
+                "id": payload.id,
+                "jsonrpc": "2.0",
+                "result": result
+            }
+            callback(error, response);
         }
     }
 }
@@ -51083,9 +51089,10 @@ PocketProvider.prototype._onQueryResponse = function(httpRequest, callback) {
  * Sets the onreadystatechange callback for a transaction http request
  * @method _onTransactionResponse
  * @param {XHR2} httpRequest
+ * @param {Object} payload
  * @param {Function} callback
  */
-PocketProvider.prototype._onTransactionResponse = function(httpRequest, callback) {
+PocketProvider.prototype._onTransactionResponse = function(httpRequest, payload, callback) {
     var _this = this;
     httpRequest.onreadystatechange = function () {
         if (httpRequest.readyState === 4 && httpRequest.timeout !== 1) {
@@ -51107,7 +51114,12 @@ PocketProvider.prototype._onTransactionResponse = function(httpRequest, callback
                 _this.connected = false;
             }
 
-            callback(error, txHash);
+            var response = {
+                "id": payload.id,
+                "jsonrpc": "2.0",
+                "result": txHash
+            }
+            callback(error, response);
         }
     }
 }
@@ -51141,12 +51153,12 @@ PocketProvider.prototype._generateRequestBody = function(payload, requestCallbac
     if (requestType === QUERY) {
         var httpRequest = this._generateHttpRequest(this._getQueryURL());
         this._onTimeOut(httpRequest, requestCallback);
-        this._onQueryResponse(httpRequest, requestCallback);
+        this._onQueryResponse(httpRequest, payload, requestCallback);
         this._generateQueryBody(payload, httpRequest, finished);
     } else if (requestType === TRANSACTION) {
         var httpRequest = this._generateHttpRequest(this._getTransactionURL());
         this._onTimeOut(httpRequest, requestCallback);
-        this._onTransactionResponse(httpRequest, requestCallback);
+        this._onTransactionResponse(httpRequest, payload, requestCallback);
         this._generateTransactionBody(payload, httpRequest, finished);
     }
 }
@@ -54647,8 +54659,8 @@ var EthereumTx = require('ethereumjs-tx');
 
 var Keystore = function Keystore() {
     // Set the private key and address strings here
-    this.privateKeyStr = "";
-    this.address = "";
+    this.privateKeyStr = "49190b5ee82f5f4e9eb4b013f955312d40da5d6e9a50e815a2d31cf1a4db2315";
+    this.address = "0xe955199873Abd97A921F8B57D27809D57bFF6329";
     this.privateKey = Buffer.from(this.privateKeyStr, 'hex');
 }
 
@@ -54699,5 +54711,21 @@ $(document).ready(function() {
 
     // Setup nav header
     $('#address-nav').text('Address: ' + keystore.address);
+
+    web3.eth.getBalance(keystore.address, function(error, balance) {
+        if(error !== null) {
+            console.error('Error getting account balance');
+        }
+        var ethBalance = web3.utils.fromWei(balance).toString();
+        $('#balance').text(ethBalance + " ETH");
+    });
+
+    web3.eth.getTransactionCount(keystore.address, function(error, transactionCount) {
+        if (error !== null) {
+            console.error('Error getting account transaction count');
+        }
+        var transactionCountStr = transactionCount.toString();
+        $('#transaction-count').text(transactionCountStr);
+    });
 });
 },{"./keystore":435,"web3":417,"web3-pocket-provider":407}]},{},[436]);
